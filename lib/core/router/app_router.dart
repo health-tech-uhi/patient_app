@@ -147,12 +147,19 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+          // Tab index 4 — Profile (same order as DashboardShell destinations).
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                pageBuilder: (context, state) => NoTransitionPage(
+                  key: state.pageKey,
+                  child: const ProfileScreen(showBackButton: false),
+                ),
+              ),
+            ],
+          ),
         ],
-      ),
-      GoRoute(
-        path: '/profile',
-        parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const ProfileScreen(),
       ),
     ],
   );

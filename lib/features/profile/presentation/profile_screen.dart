@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/patient_theme.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../patient/data/patient_repository.dart';
 import '../../patient/domain/patient_profile.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.showBackButton = true});
+
+  /// When `false` (bottom tab), no back affordance — use with [StatefulShellRoute].
+  final bool showBackButton;
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
@@ -79,7 +83,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final existing = ref.read(patientProfileProvider).when(
             data: (p) => p,
             loading: () => null,
-            error: (_, __) => null,
+            error: (_, _) => null,
           );
       final allergies = existing?.allergies ?? [];
       final payload = PatientProfile(id: existing?.id ?? '-').toUpdatePayload(
@@ -176,17 +180,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(patientProfileProvider);
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final navBarPad = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
+      backgroundColor: PatientTheme.scaffoldBackground,
       appBar: AppBar(
         title: const Text('My profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+        automaticallyImplyLeading: false,
+        leading: widget.showBackButton
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => context.pop(),
+              )
+            : null,
       ),
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: PatientTheme.primary),
+        ),
         error: (e, _) => Center(child: Text('$e')),
         data: (profile) {
           if (profile == null) {
@@ -196,106 +208,181 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           }
           if (_firstName.text.isEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _fill(profile);
+              if (mounted) {
+                _fill(profile);
+                setState(() {});
+              }
             });
           }
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              8,
+              20,
+              24 + bottomInset + navBarPad,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextField(
-                  controller: _firstName,
-                  decoration: const InputDecoration(labelText: 'First name'),
+                Text(
+                  'Your information is stored securely and used for care coordination.',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _lastName,
-                  decoration: const InputDecoration(labelText: 'Last name'),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _dob,
-                  decoration: const InputDecoration(
-                    labelText: 'Date of birth (YYYY-MM-DD)',
+                const SizedBox(height: 16),
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ExpansionTile(
+                    initiallyExpanded: true,
+                    title: const Text('Personal details'),
+                    subtitle: const Text('Name, DOB, gender, blood group'),
+                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    children: [
+                      TextField(
+                        controller: _firstName,
+                        decoration: const InputDecoration(
+                          labelText: 'First name',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _lastName,
+                        decoration: const InputDecoration(labelText: 'Last name'),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _dob,
+                        decoration: const InputDecoration(
+                          labelText: 'Date of birth (YYYY-MM-DD)',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _gender,
+                        decoration: const InputDecoration(labelText: 'Gender'),
+                        items: _genders
+                            .map((g) =>
+                                DropdownMenuItem(value: g, child: Text(g)))
+                            .toList(),
+                        onChanged: (v) =>
+                            setState(() => _gender = v ?? 'Not Specified'),
+                      ),
+                      DropdownButtonFormField<String>(
+                        value: _blood,
+                        decoration:
+                            const InputDecoration(labelText: 'Blood group'),
+                        items: _bloodGroups
+                            .map((b) =>
+                                DropdownMenuItem(value: b, child: Text(b)))
+                            .toList(),
+                        onChanged: (v) =>
+                            setState(() => _blood = v ?? 'Unknown'),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _gender,
-                  decoration: const InputDecoration(labelText: 'Gender'),
-                  items: _genders
-                      .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                      .toList(),
-                  onChanged: (v) => setState(() => _gender = v ?? 'Not Specified'),
-                ),
-                DropdownButtonFormField<String>(
-                  value: _blood,
-                  decoration: const InputDecoration(labelText: 'Blood group'),
-                  items: _bloodGroups
-                      .map((b) => DropdownMenuItem(value: b, child: Text(b)))
-                      .toList(),
-                  onChanged: (v) => setState(() => _blood = v ?? 'Unknown'),
-                ),
-                TextField(
-                  controller: _address,
-                  decoration: const InputDecoration(labelText: 'Address'),
-                ),
-                TextField(
-                  controller: _city,
-                  decoration: const InputDecoration(labelText: 'City'),
-                ),
-                TextField(
-                  controller: _state,
-                  decoration: const InputDecoration(labelText: 'State'),
-                ),
-                TextField(
-                  controller: _pincode,
-                  decoration: const InputDecoration(labelText: 'Pincode'),
-                ),
-                TextField(
-                  controller: _emergencyName,
-                  decoration: const InputDecoration(
-                    labelText: 'Emergency contact name',
+                const SizedBox(height: 12),
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ExpansionTile(
+                    title: const Text('Address'),
+                    subtitle: const Text('Where we can reach you'),
+                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    children: [
+                      TextField(
+                        controller: _address,
+                        decoration: const InputDecoration(labelText: 'Address'),
+                      ),
+                      TextField(
+                        controller: _city,
+                        decoration: const InputDecoration(labelText: 'City'),
+                      ),
+                      TextField(
+                        controller: _state,
+                        decoration: const InputDecoration(labelText: 'State'),
+                      ),
+                      TextField(
+                        controller: _pincode,
+                        decoration: const InputDecoration(labelText: 'Pincode'),
+                      ),
+                    ],
                   ),
                 ),
-                TextField(
-                  controller: _emergencyPhone,
-                  decoration: const InputDecoration(
-                    labelText: 'Emergency contact phone',
+                const SizedBox(height: 12),
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ExpansionTile(
+                    title: const Text('Emergency contact'),
+                    subtitle: const Text('Someone we can call if needed'),
+                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    children: [
+                      TextField(
+                        controller: _emergencyName,
+                        decoration: const InputDecoration(
+                          labelText: 'Emergency contact name',
+                        ),
+                      ),
+                      TextField(
+                        controller: _emergencyPhone,
+                        decoration: const InputDecoration(
+                          labelText: 'Emergency contact phone',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ExpansionTile(
+                    title: const Text('ABHA (optional)'),
+                    subtitle: const Text('Link your Ayushman Bharat Health Account'),
+                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    children: [
+                      TextField(
+                        controller: _aadhaar,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Aadhaar (12 digits)',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.tonal(
+                        onPressed: _loading ? null : _initAbha,
+                        child: const Text('Send ABHA OTP'),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _abhaOtp,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'ABHA OTP'),
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.tonal(
+                        onPressed: _loading ? null : _verifyAbha,
+                        child: const Text('Verify & link ABHA'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Semantics(
+                  button: true,
+                  label: 'Save profile',
+                  child: FilledButton(
+                    onPressed: _loading ? null : _save,
+                    child: _loading
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Save profile'),
                   ),
                 ),
                 const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: _loading ? null : _save,
-                  child: _loading
-                      ? const CircularProgressIndicator()
-                      : const Text('Save profile'),
-                ),
-                const Divider(height: 40),
-                const Text(
-                  'ABHA (optional)',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextField(
-                  controller: _aadhaar,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Aadhaar (12 digits)'),
-                ),
-                FilledButton.tonal(
-                  onPressed: _loading ? null : _initAbha,
-                  child: const Text('Send ABHA OTP'),
-                ),
-                TextField(
-                  controller: _abhaOtp,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'ABHA OTP'),
-                ),
-                FilledButton.tonal(
-                  onPressed: _loading ? null : _verifyAbha,
-                  child: const Text('Verify & link ABHA'),
-                ),
-                const SizedBox(height: 24),
                 OutlinedButton(
                   onPressed: () async {
                     await ref.read(authNotifierProvider.notifier).logout();
