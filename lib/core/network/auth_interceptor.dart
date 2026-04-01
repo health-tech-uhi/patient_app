@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../storage/secure_storage.dart';
+import 'access_context_restore.dart';
 
 class AuthInterceptor extends Interceptor {
   AuthInterceptor(
@@ -65,6 +66,18 @@ class AuthInterceptor extends Interceptor {
                 refreshToken: newRefreshToken,
               );
 
+              // Refresh tokens drop `profile_id`; re-bind patient profile for API routes.
+              try {
+                await restorePatientJwtProfile(
+                  plainDio: _refreshDio,
+                  storage: _secureStorage,
+                );
+              } catch (_) {
+                await _handleLogout();
+                return handler.next(err);
+              }
+
+              final tokenAfter = await _secureStorage.getAccessToken();
               final retryOptions = err.requestOptions.copyWith(
                 extra: {
                   ...err.requestOptions.extra,
@@ -72,7 +85,7 @@ class AuthInterceptor extends Interceptor {
                 },
               );
               retryOptions.headers['Authorization'] =
-                  'Bearer $newAccessToken';
+                  'Bearer ${tokenAfter ?? newAccessToken}';
 
               final retryResponse = await _mainDio.fetch(retryOptions);
               return handler.resolve(retryResponse);

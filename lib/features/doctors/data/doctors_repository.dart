@@ -14,19 +14,41 @@ class DoctorsRepository {
 
   final Dio _dio;
 
+  /// Loads every verified doctor. The API paginates (default 10/page, max 100/page);
+  /// without paging, older doctors never appear on the first page.
   Future<List<Doctor>> listDoctors() async {
-    final r = await _dio.get<dynamic>('/api/doctors');
-    final data = r.data;
-    if (data is List) {
-      return data
-          .whereType<Map<String, dynamic>>()
-          .map(Doctor.fromJson)
-          .toList();
+    const perPage = 100;
+    final all = <Doctor>[];
+    var page = 1;
+
+    while (true) {
+      final r = await _dio.get<dynamic>(
+        '/api/doctors',
+        queryParameters: {'page': page, 'per_page': perPage},
+      );
+      final data = r.data;
+      if (data is List) {
+        return data
+            .whereType<Map<String, dynamic>>()
+            .map(Doctor.fromJson)
+            .toList();
+      }
+      if (data is! Map<String, dynamic>) {
+        return all;
+      }
+      if (data['items'] is! List) {
+        return all;
+      }
+      final batch = PaginatedResult.fromJson(data, Doctor.fromJson);
+      all.addAll(batch.items);
+      final meta = batch.metadata;
+      final totalPages = meta?.totalPages ?? 1;
+      if (page >= totalPages || batch.items.isEmpty) {
+        break;
+      }
+      page++;
     }
-    if (data is Map<String, dynamic> && data['items'] is List) {
-      return PaginatedResult.fromJson(data, Doctor.fromJson).items;
-    }
-    return [];
+    return all;
   }
 
   Future<Doctor?> getDoctorById(String id) async {

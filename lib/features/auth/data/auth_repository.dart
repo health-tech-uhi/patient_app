@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/access_context_restore.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/storage/secure_storage.dart';
 
@@ -31,51 +32,10 @@ class AuthRepository {
     await _storage.saveTokens(accessToken: access, refreshToken: refresh);
   }
 
-  /// `POST /api/auth/switch-context` returns a new access `token` but usually **no**
-  /// `refresh_token` — keep the refresh token from the login response.
-  Future<void> _saveTokensAfterContextSwitch(Response response) async {
-    final data = response.data;
-    if (data is! Map) {
-      throw Exception('Invalid auth response');
-    }
-    final access = data['token'];
-    if (access is! String) {
-      throw Exception('Invalid access token received from server');
-    }
-    final refresh = data['refresh_token'] ?? data['refreshToken'];
-    final String refreshToken;
-    if (refresh is String) {
-      refreshToken = refresh;
-    } else {
-      final existing = await _storage.getRefreshToken();
-      if (existing == null) {
-        throw Exception('No refresh token to pair with profile context');
-      }
-      refreshToken = existing;
-    }
-    await _storage.saveTokens(accessToken: access, refreshToken: refreshToken);
-  }
-
   /// Binds the session to the **patient** access-control profile so the JWT includes
-  /// `profile_id`. Required for clinical routes (`/api/records/...`); otherwise the API
-  /// returns 401 *Missing profile context in token*. Not “multi-app switching” — this
-  /// app only ever uses the patient profile when one exists.
+  /// `profile_id` and `role: PATIENT`. Required for appointments, clinical routes, etc.
   Future<void> switchToPatientProfileContext() async {
-    try {
-      final r = await _dio.get<Map<String, dynamic>>('/api/patients/profile');
-      final data = r.data;
-      if (data == null) return;
-      final id = data['profile_id'] ?? data['id'];
-      if (id == null) return;
-      final switchRes = await _dio.post<Map<String, dynamic>>(
-        '/api/auth/switch-context',
-        data: {'profile_id': id},
-      );
-      await _saveTokensAfterContextSwitch(switchRes);
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) return;
-      rethrow;
-    }
+    await restorePatientJwtProfile(plainDio: _dio, storage: _storage);
   }
 
   /// Password or OTP login, then attach patient profile to the JWT when a profile exists.
