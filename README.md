@@ -1,6 +1,18 @@
 # patient_app
 
-A new Flutter project.
+Patient Flutter app for the health platform (API via `flutter_dotenv`).
+
+## Environment
+
+1. Copy the example env file and edit values as needed:
+   ```bash
+   cp .env.example .env
+   ```
+2. The app loads `.env` at startup (`lib/main.dart`). Keep your real `.env` local; it is gitignored.
+
+| Variable        | Description                                      |
+|-----------------|--------------------------------------------------|
+| `API_BASE_URL`  | Health platform / BFF base URL (default `http://localhost:3111`). |
 
 ## Getting Started
 
