@@ -107,7 +107,7 @@ class RecordsRepository {
       'file_size_bytes': compressed.length,
       'mime_type': resolvedMime,
       'garage_object_uuid': objectUuid,
-      if (description != null) 'description': description,
+      'description': ?description,
     });
   }
 

@@ -38,7 +38,7 @@ class AppointmentsRepository {
   }) async {
     await _dio.post('/api/appointments', data: {
       'doctor_id': doctorId,
-      if (clinicId != null) 'clinic_id': clinicId,
+      'clinic_id': ?clinicId,
       'requested_datetime': requestedDatetime.toUtc().toIso8601String(),
       'appointment_mode': mode == AppointmentMode.teleconsultation
           ? 'teleconsultation'

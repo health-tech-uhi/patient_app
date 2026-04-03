@@ -164,7 +164,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _gender,
+                initialValue: _gender,
                 decoration: const InputDecoration(labelText: 'Gender'),
                 items: _genders
                     .map((g) => DropdownMenuItem(value: g, child: Text(g)))
@@ -173,7 +173,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _blood,
+                initialValue: _blood,
                 decoration: const InputDecoration(labelText: 'Blood group'),
                 items: _bloodGroups
                     .map((b) => DropdownMenuItem(value: b, child: Text(b)))
@@ -243,7 +243,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           ),
                         ),
                         DropdownButtonFormField<String>(
-                          value: row.severity,
+                          initialValue: row.severity,
                           items: const [
                             DropdownMenuItem(
                                 value: 'mild', child: Text('mild')),

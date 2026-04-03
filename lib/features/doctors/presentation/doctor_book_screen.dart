@@ -118,7 +118,7 @@ class _DoctorBookScreenState extends ConsumerState<DoctorBookScreen> {
                   onTap: _pickTime,
                 ),
                 DropdownButtonFormField<AppointmentMode>(
-                  value: _mode,
+                  initialValue: _mode,
                   decoration: const InputDecoration(labelText: 'Mode'),
                   items: const [
                     DropdownMenuItem(

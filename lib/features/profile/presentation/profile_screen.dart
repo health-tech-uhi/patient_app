@@ -257,7 +257,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _gender,
+                        initialValue: _gender,
                         decoration: const InputDecoration(labelText: 'Gender'),
                         items: _genders
                             .map((g) =>
@@ -267,7 +267,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             setState(() => _gender = v ?? 'Not Specified'),
                       ),
                       DropdownButtonFormField<String>(
-                        value: _blood,
+                        initialValue: _blood,
                         decoration:
                             const InputDecoration(labelText: 'Blood group'),
                         items: _bloodGroups
