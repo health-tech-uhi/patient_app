@@ -1,5 +1,7 @@
 class Doctor {
   final String id;
+  final String? profileId;
+  final String? userId;
   final String fullName;
   final String specialization;
   final String? qualification;
@@ -13,6 +15,8 @@ class Doctor {
 
   const Doctor({
     required this.id,
+    this.profileId,
+    this.userId,
     required this.fullName,
     required this.specialization,
     this.qualification,
@@ -29,6 +33,8 @@ class Doctor {
     final langs = json['languages_spoken'];
     return Doctor(
       id: json['id']?.toString() ?? '',
+      profileId: json['profile_id']?.toString(),
+      userId: json['user_id']?.toString(),
       fullName: json['full_name']?.toString() ?? '',
       specialization: json['specialization']?.toString() ?? '',
       qualification: json['qualification']?.toString(),

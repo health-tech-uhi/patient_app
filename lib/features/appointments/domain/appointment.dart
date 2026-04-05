@@ -23,6 +23,8 @@ class Appointment {
   final String? chiefComplaint;
   final String? rejectionReason;
   final DateTime createdAt;
+  final String? doctorName;
+  final String? clinicName;
 
   const Appointment({
     required this.id,
@@ -36,6 +38,8 @@ class Appointment {
     this.chiefComplaint,
     this.rejectionReason,
     required this.createdAt,
+    this.doctorName,
+    this.clinicName,
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
@@ -57,7 +61,23 @@ class Appointment {
       rejectionReason: json['rejection_reason']?.toString(),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
+      doctorName: json['doctor_name']?.toString(),
+      clinicName: json['clinic_name']?.toString(),
     );
+  }
+
+  String get displayDoctorName {
+    final name = doctorName?.trim();
+    if (name == null || name.isEmpty) return 'Doctor';
+    if (name == doctorId || _looksLikeUuid(name)) return 'Doctor';
+    return name;
+  }
+
+  static bool _looksLikeUuid(String value) {
+    final uuidRegex = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+    );
+    return uuidRegex.hasMatch(value);
   }
 
   static AppointmentStatus _parseStatus(String? s) {

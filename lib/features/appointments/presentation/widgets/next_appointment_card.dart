@@ -50,19 +50,43 @@ class NextAppointmentCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          formatted,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            height: 1.2,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              appointment.displayDoctorName,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                height: 1.2,
+                              ),
+                            ),
                           ),
-                        ),
+                          AppointmentStatusChip(
+                            status: appointment.status,
+                            label: appointment.statusLabel,
+                          ),
+                        ],
                       ),
-                      AppointmentStatusChip(
-                        status: appointment.status,
-                        label: appointment.statusLabel,
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.event_note_rounded,
+                            size: 16,
+                            color: PatientTheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            formatted,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: PatientTheme.textPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

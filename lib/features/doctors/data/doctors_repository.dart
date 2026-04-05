@@ -54,7 +54,9 @@ class DoctorsRepository {
   Future<Doctor?> getDoctorById(String id) async {
     final list = await listDoctors();
     try {
-      return list.firstWhere((d) => d.id == id);
+      return list.firstWhere(
+        (d) => d.id == id || d.profileId == id || d.userId == id,
+      );
     } catch (_) {
       return null;
     }
