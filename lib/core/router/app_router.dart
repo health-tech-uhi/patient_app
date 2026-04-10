@@ -14,6 +14,7 @@ import '../../features/doctors/presentation/doctor_book_screen.dart';
 import '../../features/doctors/presentation/doctors_tab.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/records/presentation/record_detail_screen.dart';
 import '../../features/records/presentation/records_tab.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey =
@@ -144,6 +145,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                   key: state.pageKey,
                   child: const RecordsTab(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'summary/:summaryId',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) {
+                      final id = state.pathParameters['summaryId']!;
+                      return RecordDetailScreen(summaryId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
